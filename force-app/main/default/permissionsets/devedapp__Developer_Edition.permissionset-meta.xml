@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <applicationVisibilities>
+        <application>devedapp__Developer_Edition</application>
+        <visible>true</visible>
+    </applicationVisibilities>
+    <description>Permission to view the Developer Edition app.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Developer Edition</label>
+    <license>Salesforce</license>
+    <tabSettings>
+        <tab>devedapp__Welcome</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>

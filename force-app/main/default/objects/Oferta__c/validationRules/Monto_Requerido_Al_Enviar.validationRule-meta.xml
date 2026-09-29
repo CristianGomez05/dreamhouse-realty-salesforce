@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Monto_Requerido_Al_Enviar</fullName>
+    <active>true</active>
+    <description>Exige que el Monto de la Oferta esté lleno cuando el Estado es Enviada</description>
+    <errorConditionFormula>AND(
+     ISPICKVAL(Estado__c, &quot;Enviada&quot;),
+     ISBLANK(Monto_de_la_Oferta__c)
+   )</errorConditionFormula>
+    <errorDisplayField>Monto_de_la_Oferta__c</errorDisplayField>
+    <errorMessage>El Monto de la Oferta es obligatorio cuando el Estado es Enviada.</errorMessage>
+</ValidationRule>

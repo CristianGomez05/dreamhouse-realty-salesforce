@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cumplimiento_Minimo_Requerido</fullName>
+    <active>true</active>
+    <description>Impide ofertas por debajo del 70% del precio de lista</description>
+    <errorConditionFormula>AND(
+     NOT(ISBLANK(Monto_de_la_Oferta__c)),
+     Porcentaje_de_Descuento__c &lt; 0.70
+   )</errorConditionFormula>
+    <errorDisplayField>Monto_de_la_Oferta__c</errorDisplayField>
+    <errorMessage>El monto de la oferta no puede ser menor al 70% del precio de lista de la propiedad.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Compacto_Propiedad</fullName>
+    <fields>Precio_de_Lista__c</fields>
+    <fields>Estado__c</fields>
+    <fields>Agente_Asignado__c</fields>
+    <label>Compacto Propiedad</label>
+</CompactLayout>
