@@ -1,0 +1,64 @@
+<template>
+    <lightning-card title="Panel del Agente" icon-name="standard:home">
+
+        <div class="slds-p-horizontal_small slds-p-bottom_small">
+            <lightning-input
+                type="search"
+                label="Buscar propiedad por nombre o región"
+                onchange={handleBusquedaChange}
+                variant="label-hidden"
+                placeholder="Buscar propiedad...">
+            </lightning-input>
+        </div>
+
+        <template if:true={cargando}>
+            <div class="slds-align_absolute-center slds-p-around_medium">
+                <lightning-spinner alternative-text="Cargando" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:true={errorMensaje}>
+            <div class="slds-p-horizontal_small">
+                <div class="slds-text-color_error">{errorMensaje}</div>
+            </div>
+        </template>
+
+        <template if:true={mostrarMensajeVacio}>
+            <div class="slds-p-horizontal_small slds-text-color_weak">
+                No se encontraron propiedades.
+            </div>
+        </template>
+
+        <template if:true={hayPropiedades}>
+            <ul class="slds-has-dividers_bottom-space">
+                <template for:each={propiedades} for:item="propiedad">
+                    <li key={propiedad.Id} class="slds-item slds-p-around_small">
+                        <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+                            <div class="slds-col slds-size_2-of-3">
+                                <p class="slds-text-heading_small">{propiedad.Name}</p>
+                                <p class="slds-text-body_small slds-text-color_weak">
+                                    {propiedad.Estado__c} · {propiedad.Region__c}
+                                </p>
+                            </div>
+                            <div class="slds-col slds-size_1-of-3 slds-text-align_right">
+                                <lightning-formatted-number
+                                    value={propiedad.Precio_de_Lista__c}
+                                    format-style="currency"
+                                    currency-code="USD">
+                                </lightning-formatted-number>
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-m-top_x-small">
+                            <lightning-badge label={propiedad.cantidadVisitas} class="slds-m-right_x-small">
+                            </lightning-badge>
+                            <span class="slds-text-body_small slds-text-color_weak">
+                                visita(s) próxima(s)
+                            </span>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+        </template>
+
+    </lightning-card>
+</template>
