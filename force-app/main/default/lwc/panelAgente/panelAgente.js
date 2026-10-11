@@ -1,5 +1,8 @@
 import { LightningElement, track, wire } from 'lwc';
+import { refreshApex } from '@salesforce/apex';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getPropiedadesDelAgente from '@salesforce/apex/PropiedadAgenteController.getPropiedadesDelAgente';
+import marcarVisitaRealizada from '@salesforce/apex/PropiedadAgenteController.marcarVisitaRealizada';
 
 export default class PanelAgente extends LightningElement {
 
@@ -8,25 +11,29 @@ export default class PanelAgente extends LightningElement {
     @track errorMensaje;
     @track cargando = true;
 
-    // Variable interna para el debounce — no es reactiva (no @track),
-    // porque solo guarda la referencia al temporizador, no algo que
-    // deba disparar un re-render.
     debounceTimeout;
+    resultadoWire;
 
-    // @wire se re-ejecuta automáticamente cada vez que searchTerm
-    // cambia. El prefijo "$" es lo que lo hace reactivo: sin él,
-    // Lightning solo leería el valor una vez, en el momento en que
-    // el componente se crea.
     @wire(getPropiedadesDelAgente, { terminoBusqueda: '$searchTerm' })
-    wiredPropiedades({ data, error }) {
+    wiredPropiedades(resultado) {
+        // Se conserva la respuesta completa del wire: refreshApex
+        // requiere ese objeto para invalidar la caché del cliente.
+        this.resultadoWire = resultado;
+        const { data, error } = resultado;
         this.cargando = false;
 
         if (data) {
-            this.propiedades = data.map((prop) => ({
-                ...prop,
-                cantidadVisitas: prop.Visitas__r ? prop.Visitas__r.length : 0,
-                tieneOfertas: prop.Total_de_Ofertas__c > 0
-            }));
+            this.propiedades = data.map((prop) => {
+                const visitas = prop.Visitas__r
+                    ? prop.Visitas__r.map((v) => ({ ...v, procesando: false }))
+                    : [];
+                return {
+                    ...prop,
+                    visitas,
+                    cantidadVisitas: visitas.length,
+                    tieneOfertas: prop.Total_de_Ofertas__c > 0
+                };
+            });
             this.errorMensaje = undefined;
         } else if (error) {
             this.errorMensaje = this.extraerMensajeError(error);
@@ -35,31 +42,98 @@ export default class PanelAgente extends LightningElement {
     }
 
     handleBusquedaChange(event) {
-        // Guardamos el valor del input YA (para que el campo de texto
-        // no se sienta "trabado"), pero NO actualizamos searchTerm
-        // todavía — eso es lo que retrasa la consulta a Apex.
         const valorEscrito = event.target.value;
-
-        // Si había un temporizador pendiente de una tecla anterior,
-        // lo cancelamos. Esto es el corazón del debounce: cada tecla
-        // reinicia la cuenta regresiva.
         clearTimeout(this.debounceTimeout);
-
         this.debounceTimeout = setTimeout(() => {
-            // Esta función interna es un closure: "recuerda" la
-            // referencia a `this` del componente y a `valorEscrito`,
-            // aunque handleBusquedaChange ya haya terminado de
-            // ejecutarse hace 300ms.
             this.cargando = true;
             this.searchTerm = valorEscrito;
         }, 300);
     }
 
-    extraerMensajeError(error) {
-        if (error && error.body && error.body.message) {
-            return error.body.message;
+    async handleMarcarRealizada(event) {
+        const visitaId = event.detail.visitaId;
+
+        // Evita envíos duplicados mientras la visita ya está en proceso.
+        if (this.estaProcesando(visitaId)) {
+            return;
         }
-        return 'Ocurrió un error al cargar las propiedades.';
+
+        this.actualizarVisita(visitaId, { procesando: true });
+
+        try {
+            await marcarVisitaRealizada({ visitaId });
+        } catch (error) {
+            // El guardado falló: se revierte el estado de la tarjeta y se
+            // informa el motivo devuelto por el servidor.
+            this.actualizarVisita(visitaId, { procesando: false });
+            this.mostrarToast(
+                'No se pudo actualizar la visita',
+                this.extraerMensajeError(error),
+                'error'
+            );
+            return;
+        }
+
+        // El servidor confirmó el guardado: la visita sale de la lista.
+        this.quitarVisita(visitaId);
+        this.mostrarToast(
+            'Visita realizada',
+            'La visita se marcó como realizada.',
+            'success'
+        );
+
+        // La caché del wire conserva la visita hasta que se invalida. Un
+        // fallo aquí no afecta al guardado ya confirmado, por lo que se
+        // maneja aparte del bloque anterior.
+        try {
+            await refreshApex(this.resultadoWire);
+        } catch (errorRefresco) {
+            // La lista local ya refleja el cambio; no se requiere acción.
+        }
+    }
+
+    // Aplica cambios a una visita concreta mediante reasignación inmutable
+    // del arreglo: LWC detecta cambios por referencia.
+    actualizarVisita(visitaId, cambios) {
+        this.propiedades = this.propiedades.map((prop) => ({
+            ...prop,
+            visitas: prop.visitas.map((v) =>
+                v.Id === visitaId ? { ...v, ...cambios } : v
+            )
+        }));
+    }
+
+    quitarVisita(visitaId) {
+        this.propiedades = this.propiedades.map((prop) => {
+            const visitas = prop.visitas.filter((v) => v.Id !== visitaId);
+            return { ...prop, visitas, cantidadVisitas: visitas.length };
+        });
+    }
+
+    estaProcesando(visitaId) {
+        return this.propiedades.some((prop) =>
+            prop.visitas.some((v) => v.Id === visitaId && v.procesando)
+        );
+    }
+
+    mostrarToast(titulo, mensaje, variante) {
+        this.dispatchEvent(
+            new ShowToastEvent({ title: titulo, message: mensaje, variant: variante })
+        );
+    }
+
+    extraerMensajeError(error) {
+        const cuerpo = error && error.body;
+        if (Array.isArray(cuerpo)) {
+            return cuerpo.map((e) => e.message).join(', ');
+        }
+        if (cuerpo && cuerpo.message) {
+            return cuerpo.message;
+        }
+        if (error && error.message) {
+            return error.message;
+        }
+        return 'Ocurrió un error inesperado.';
     }
 
     get hayPropiedades() {

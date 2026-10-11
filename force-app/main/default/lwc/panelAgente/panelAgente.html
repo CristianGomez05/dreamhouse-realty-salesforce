@@ -2,12 +2,8 @@
     <lightning-card title="Panel del Agente" icon-name="standard:home">
 
         <div class="slds-p-horizontal_small slds-p-bottom_small">
-            <lightning-input
-                type="search"
-                label="Buscar propiedad por nombre o región"
-                onchange={handleBusquedaChange}
-                variant="label-hidden"
-                placeholder="Buscar propiedad...">
+            <lightning-input type="search" label="Buscar propiedad por nombre o región" onchange={handleBusquedaChange}
+                variant="label-hidden" placeholder="Buscar propiedad...">
             </lightning-input>
         </div>
 
@@ -41,9 +37,7 @@
                                 </p>
                             </div>
                             <div class="slds-col slds-size_1-of-3 slds-text-align_right">
-                                <lightning-formatted-number
-                                    value={propiedad.Precio_de_Lista__c}
-                                    format-style="currency"
+                                <lightning-formatted-number value={propiedad.Precio_de_Lista__c} format-style="currency"
                                     currency-code="USD">
                                 </lightning-formatted-number>
                             </div>
@@ -55,6 +49,14 @@
                                 visita(s) próxima(s)
                             </span>
                         </div>
+
+                        <template if:true={propiedad.visitas.length}>
+                            <template for:each={propiedad.visitas} for:item="visita">
+                                <c-tarjeta-visita key={visita.Id} visita={visita}
+                                    onmarcarrealizada={handleMarcarRealizada}>
+                                </c-tarjeta-visita>
+                            </template>
+                        </template>
                     </li>
                 </template>
             </ul>

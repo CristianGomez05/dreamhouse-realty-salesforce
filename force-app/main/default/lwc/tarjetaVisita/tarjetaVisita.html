@@ -1,0 +1,24 @@
+<template>
+    <div class="slds-box slds-box_x-small slds-m-top_x-small slds-theme_shade">
+        <p class="slds-text-body_small">
+            <lightning-formatted-date-time
+                value={visita.Fecha_de_Visita__c}
+                year="numeric"
+                month="short"
+                day="2-digit"
+                hour="2-digit"
+                minute="2-digit">
+            </lightning-formatted-date-time>
+        </p>
+        <template if:true={visita.Notas__c}>
+            <p class="slds-text-body_small slds-text-color_weak">{visita.Notas__c}</p>
+        </template>
+        <lightning-button
+            label={etiquetaBoton}
+            onclick={handleClick}
+            disabled={visita.procesando}
+            variant="neutral"
+            class="slds-m-top_x-small">
+        </lightning-button>
+    </div>
+</template>

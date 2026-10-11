@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Solo_Agente_Asignado_Edita</fullName>
+    <active>true</active>
+    <errorConditionFormula>IF(
+  ISNEW(),
+  false,
+  AND(
+    $Profile.Name = &quot;Agente&quot;,
+    $User.Id &lt;&gt; PRIORVALUE(Agente_Asignado__c)
+  )
+)</errorConditionFormula>
+    <errorMessage>Solo el agente asignado puede modificar esta visita.</errorMessage>
+</ValidationRule>
