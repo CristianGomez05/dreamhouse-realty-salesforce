@@ -14,16 +14,20 @@ private class PropiedadAgenteControllerTest {
       WHERE Name = 'Agente'
       LIMIT 1
     ];
-
-    // Permission Set que otorga el FLS de los campos nuevos (por ejemplo
-    // Visita__c.Realizada__c). Con WITH USER_MODE, un usuario sin este
-    // permiso recibe una excepción de acceso a campo.
-    PermissionSet permisoPanel = [
-      SELECT Id
+    // Los permisos del agente viven en dos Permission Sets: el de acceso
+    // general (objetos y campos) y el del panel (clase Apex y Realizada__c).
+    // Se consultan por API Name, que es estable entre orgs.
+    List<PermissionSet> permisos = [
+      SELECT Id, Name
       FROM PermissionSet
-      WHERE Label = 'Panel del Agente - Acceso'
-      LIMIT 1
+      WHERE
+        Name IN ('DreamHouse_Realty_Acceso_Completo', 'Panel_del_Agente_Acceso')
     ];
+    System.assertEquals(
+      2,
+      permisos.size(),
+      'La prueba requiere los dos Permission Sets del agente'
+    );
 
     User agenteA;
     User agenteB;
@@ -62,16 +66,44 @@ private class PropiedadAgenteControllerTest {
       );
       insert agenteB;
 
-      insert new List<PermissionSetAssignment>{
-        new PermissionSetAssignment(
-          AssigneeId = agenteA.Id,
-          PermissionSetId = permisoPanel.Id
-        ),
-        new PermissionSetAssignment(
-          AssigneeId = agenteB.Id,
-          PermissionSetId = permisoPanel.Id
-        )
-      };
+      List<PermissionSetAssignment> asignaciones = new List<PermissionSetAssignment>();
+      for (User agente : new List<User>{ agenteA, agenteB }) {
+        for (PermissionSet permiso : permisos) {
+          asignaciones.add(
+            new PermissionSetAssignment(
+              AssigneeId = agente.Id,
+              PermissionSetId = permiso.Id
+            )
+          );
+        }
+      }
+
+      // El usuario que ejecuta las pruebas también necesita acceso al campo
+      // Realizada__c: en una org donde el campo llegó por despliegue, el
+      // administrador no lo recibe automáticamente, y varias pruebas lo
+      // leen o lo escriben fuera de System.runAs.
+      Set<Id> asignadosAlEjecutor = new Set<Id>();
+      for (PermissionSetAssignment existente : [
+        SELECT PermissionSetId
+        FROM PermissionSetAssignment
+        WHERE AssigneeId = :UserInfo.getUserId()
+      ]) {
+        asignadosAlEjecutor.add(existente.PermissionSetId);
+      }
+      for (PermissionSet permiso : permisos) {
+        if (
+          permiso.Name == 'Panel_del_Agente_Acceso' &&
+          !asignadosAlEjecutor.contains(permiso.Id)
+        ) {
+          asignaciones.add(
+            new PermissionSetAssignment(
+              AssigneeId = UserInfo.getUserId(),
+              PermissionSetId = permiso.Id
+            )
+          );
+        }
+      }
+      insert asignaciones;
     }
 
     Propiedad__c propiedadA = new Propiedad__c(
