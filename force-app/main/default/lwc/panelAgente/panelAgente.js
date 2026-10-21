@@ -15,6 +15,10 @@ const CIERRE_INSIGNIAS = {
     etiqueta: "Cierre legal completado",
     clase: "slds-theme_success"
   },
+  Rechazado: {
+    etiqueta: "Cierre rechazado por Legal",
+    clase: "slds-theme_error"
+  },
   Error: {
     etiqueta: "Error en el cierre",
     clase: "slds-theme_error"

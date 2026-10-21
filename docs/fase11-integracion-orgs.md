@@ -8,8 +8,10 @@ reenvía por correo y el estado legal en Org A se actualiza a mano.
 
 - **Ida:** Propiedad pasa a "Bajo Contrato" en Org A → se crea/actualiza
   `Cierre__c` en Org B (estado "Recibido").
-- **Vuelta:** Legal aprueba en Org B → Org A actualiza la propiedad a
-  "Cerrada" / `Estado_de_Cierre_Legal__c = Cerrado`.
+- **Vuelta:** Legal decide en Org B. Si aprueba, Org A actualiza la propiedad a
+  "Cerrada" / `Estado_de_Cierre_Legal__c = Cerrado`. Si rechaza, Org A marca
+  `Estado_de_Cierre_Legal__c = Rechazado` y la propiedad sigue en "Bajo
+  Contrato"; el agente decide cómo continuar.
 - **Panel del Agente:** muestra una insignia con el estado del cierre.
 
 ## 2. Autenticación (OAuth 2.0 Client Credentials)
@@ -61,6 +63,10 @@ Manifiestos: `manifest/orgb-fase11.xml` y `manifest/orga-fase11.xml`.
 - Fallo definitivo → estado "Error" y mensaje en `Ultimo_Error_Integracion__c`.
 - Sin bucles: los flows disparan solo "cuando se actualiza a cumplir los
   criterios" y la respuesta de vuelta solo toca campos de control.
+- **Vuelta:** Legal decide en Org B. Si aprueba, Org A actualiza la propiedad a
+  "Cerrada" / `Estado_de_Cierre_Legal__c = Cerrado`. Si rechaza, Org A marca
+  `Estado_de_Cierre_Legal__c = Rechazado` y la propiedad sigue en "Bajo
+  Contrato"; el agente decide cómo continuar.
 
 ## 6. Errores reales y causa raíz
 
@@ -81,7 +87,6 @@ Manifiestos: `manifest/orgb-fase11.xml` y `manifest/orga-fase11.xml`.
 
 ## 7. Limitaciones conocidas
 
-- El caso "Rechazado" en Org B no se devuelve a Org A (mejora futura).
 - No se bloquea el envío si hay una aprobación de oferta pendiente (mejora
   opcional de negocio).
 - `Cierre_Entrante_Acceso` usa Modify All sobre `Propiedad__c`; en
@@ -91,6 +96,11 @@ Manifiestos: `manifest/orgb-fase11.xml` y `manifest/orga-fase11.xml`.
   (Org A: cumplimiento > 0.15; Org B: < 0.85). El `ApprovalProcess` del repo es
   el de Org A y no forma parte de los manifiestos. Revisar el flujo equivalente
   de Org A y unificar los criterios.
+  - Org A y Org B comparten una sola carpeta de código fuente. Por eso el
+    manifiesto de Org B, al desplegar el objeto `Propiedad__c`, crearía también
+    `Estado_de_Cierre_Legal__c` y `Ultimo_Error_Integracion__c`, que solo se usan
+    en Org A. Quedan sin permisos de campo y sin uso. Si molestan, se eliminan a
+    mano en Org B.
 
 ## 8. Despliegue en una org nueva
 

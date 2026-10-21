@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Propiedad__c.Estado_de_Cierre_Legal__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>CierreEntranteRest</members>
+        <members>CierreEntranteRestTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>panelAgente</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <version>67.0</version>
+</Package>

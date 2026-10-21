@@ -2,13 +2,16 @@
  * Endpoint de Org A que recibe de Org B el resultado del cierre legal.
  * URL: /services/apexrest/cierre/v1/
  *
- * Única operación permitida: Bajo Contrato -> Cerrada, y solo cuando legal
- * aprobó. Cualquier otra transición se rechaza con 400, de modo que ni un
- * error ni una llamada indebida puedan mover una propiedad a un estado que
- * el negocio no autoriza.
+ * Transiciones permitidas, siempre sobre una propiedad en Bajo Contrato:
+ *  - Aprobado: Bajo Contrato -> Cerrada (y estado de cierre = Cerrado).
+ *  - Rechazado: la propiedad sigue en Bajo Contrato y el estado de cierre
+ *    pasa a Rechazado. Qué hacer después lo decide el agente.
+ * Cualquier otra combinación se rechaza con 400, de modo que ni un error
+ * ni una llamada indebida puedan mover una propiedad a un estado que el
+ * negocio no autoriza.
  *
  * No modifica Oferta__c, para no interferir con el Approval Process.
- * Es idempotente: cerrar una propiedad ya cerrada responde 200 sin cambios.
+ * Es idempotente: repetir el mismo resultado responde 200 sin cambios.
  * Se ejecuta como el usuario de integración y usa modo usuario.
  */
 @RestResource(urlMapping='/cierre/v1/*')
@@ -29,7 +32,7 @@ global with sharing class CierreEntranteRest {
       Id propiedadId = leerId(payload.idPropiedadOrigen);
 
       List<Propiedad__c> propiedades = [
-        SELECT Id, Estado__c
+        SELECT Id, Estado__c, Estado_de_Cierre_Legal__c
         FROM Propiedad__c
         WHERE Id = :propiedadId
         WITH USER_MODE
@@ -45,28 +48,58 @@ global with sharing class CierreEntranteRest {
         return;
       }
 
-      Propiedad__c propiedad = propiedades[0];
-      if (propiedad.Estado__c == 'Cerrada') {
-        responder(200, propiedad.Id, false);
-        return;
+      if (payload.estadoLegal == 'Aprobado') {
+        aprobar(propiedades[0]);
+      } else {
+        rechazar(propiedades[0]);
       }
-      if (propiedad.Estado__c != 'Bajo Contrato') {
-        throw new SolicitudInvalidaException(
-          'Solo se puede cerrar una propiedad en Bajo Contrato. Estado actual: ' +
-          propiedad.Estado__c
-        );
-      }
-
-      propiedad.Estado__c = 'Cerrada';
-      propiedad.Estado_de_Cierre_Legal__c = 'Cerrado';
-      propiedad.Ultimo_Error_Integracion__c = null;
-      update as user propiedad;
-      responder(200, propiedad.Id, true);
     } catch (SolicitudInvalidaException e) {
       escribir(400, new Map<String, Object>{ 'error' => e.getMessage() });
     } catch (Exception e) {
       escribir(500, new Map<String, Object>{ 'error' => e.getMessage() });
     }
+  }
+
+  private static void aprobar(Propiedad__c propiedad) {
+    if (propiedad.Estado__c == 'Cerrada') {
+      responder(200, propiedad.Id, 'Cerrada', false);
+      return;
+    }
+    if (propiedad.Estado__c != 'Bajo Contrato') {
+      throw new SolicitudInvalidaException(
+        'Solo se puede cerrar una propiedad en Bajo Contrato. Estado actual: ' +
+        propiedad.Estado__c
+      );
+    }
+
+    propiedad.Estado__c = 'Cerrada';
+    propiedad.Estado_de_Cierre_Legal__c = 'Cerrado';
+    propiedad.Ultimo_Error_Integracion__c = null;
+    update as user propiedad;
+    responder(200, propiedad.Id, 'Cerrada', true);
+  }
+
+  private static void rechazar(Propiedad__c propiedad) {
+    if (propiedad.Estado__c == 'Cerrada') {
+      throw new SolicitudInvalidaException(
+        'No se puede rechazar el cierre de una propiedad ya cerrada.'
+      );
+    }
+    if (propiedad.Estado__c != 'Bajo Contrato') {
+      throw new SolicitudInvalidaException(
+        'Solo se puede rechazar el cierre de una propiedad en Bajo Contrato. Estado actual: ' +
+        propiedad.Estado__c
+      );
+    }
+    if (propiedad.Estado_de_Cierre_Legal__c == 'Rechazado') {
+      responder(200, propiedad.Id, propiedad.Estado__c, false);
+      return;
+    }
+
+    propiedad.Estado_de_Cierre_Legal__c = 'Rechazado';
+    propiedad.Ultimo_Error_Integracion__c = null;
+    update as user propiedad;
+    responder(200, propiedad.Id, propiedad.Estado__c, true);
   }
 
   private static ResultadoPayload leerPayload(RestRequest solicitud) {
@@ -89,9 +122,13 @@ global with sharing class CierreEntranteRest {
       );
     }
 
-    if (payload == null || payload.estadoLegal != 'Aprobado') {
+    if (
+      payload == null ||
+      (payload.estadoLegal != 'Aprobado' &&
+      payload.estadoLegal != 'Rechazado')
+    ) {
       throw new SolicitudInvalidaException(
-        'estadoLegal debe ser Aprobado: es el único resultado que cierra una propiedad.'
+        'estadoLegal debe ser Aprobado o Rechazado: son los únicos resultados que Legal puede informar.'
       );
     }
     return payload;
@@ -118,13 +155,14 @@ global with sharing class CierreEntranteRest {
   private static void responder(
     Integer codigo,
     Id propiedadId,
+    String estado,
     Boolean huboCambio
   ) {
     escribir(
       codigo,
       new Map<String, Object>{
         'idPropiedad' => propiedadId,
-        'estado' => 'Cerrada',
+        'estado' => estado,
         'huboCambio' => huboCambio
       }
     );

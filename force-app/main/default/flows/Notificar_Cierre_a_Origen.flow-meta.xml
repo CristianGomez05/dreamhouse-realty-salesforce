@@ -51,12 +51,19 @@
         </connector>
         <doesRequireRecordChangedToMeetCriteria
     >true</doesRequireRecordChangedToMeetCriteria>
-        <filterLogic>and</filterLogic>
+        <filterLogic>or</filterLogic>
         <filters>
             <field>Estado_Legal__c</field>
             <operator>EqualTo</operator>
             <value>
                 <stringValue>Aprobado</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Estado_Legal__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Rechazado</stringValue>
             </value>
         </filters>
         <object>Cierre__c</object>

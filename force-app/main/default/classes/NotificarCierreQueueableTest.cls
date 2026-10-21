@@ -265,4 +265,36 @@ private class NotificarCierreQueueableTest {
       'Debe quedar registrado el número de intento'
     );
   }
+
+  @isTest
+  static void testPayloadAceptaUnCierreRechazado() {
+    Cierre__c cierre = crearCierre(11, 'Rechazado', 'Pendiente');
+
+    CierreOrigenCliente.ResultadoPayload payload = CierreOrigenCliente.armarPayload(
+      CierreOrigenCliente.cargarCierre(cierre.Id)
+    );
+
+    System.assertEquals(idOrigen(11), payload.idPropiedadOrigen);
+    System.assertEquals('Rechazado', payload.estadoLegal);
+  }
+
+  @isTest
+  static void testInvocableNotificaUnCierreRechazado() {
+    Cierre__c cierre = crearCierre(12, 'Rechazado', 'Pendiente');
+    Test.setMock(HttpCalloutMock.class, new MockOrgA(200, '{}'));
+
+    CierreAprobadoInvocable.Entrada entrada = new CierreAprobadoInvocable.Entrada();
+    entrada.cierreId = cierre.Id;
+
+    Test.startTest();
+    CierreAprobadoInvocable.notificar(
+      new List<CierreAprobadoInvocable.Entrada>{ entrada }
+    );
+    Test.stopTest();
+
+    System.assertEquals(
+      'Notificada',
+      recargar(cierre.Id).Notificacion_a_Origen__c
+    );
+  }
 }

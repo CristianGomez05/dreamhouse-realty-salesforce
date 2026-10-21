@@ -32,9 +32,12 @@ public with sharing class CierreOrigenCliente {
   }
 
   public static ResultadoPayload armarPayload(Cierre__c cierre) {
-    if (cierre.Estado_Legal__c != 'Aprobado') {
+    if (
+      cierre.Estado_Legal__c != 'Aprobado' &&
+      cierre.Estado_Legal__c != 'Rechazado'
+    ) {
       throw new CierreException(
-        'Solo se notifica un cierre en estado Aprobado.'
+        'Solo se notifica un cierre en estado Aprobado o Rechazado.'
       );
     }
     if (String.isBlank(cierre.Id_Propiedad_Origen__c)) {

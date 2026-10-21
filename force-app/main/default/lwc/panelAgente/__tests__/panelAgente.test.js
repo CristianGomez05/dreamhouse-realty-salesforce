@@ -292,6 +292,7 @@ describe("c-panel-agente", () => {
     it.each([
       ["Enviado", "Cierre en revisión legal", "slds-theme_warning"],
       ["Cerrado", "Cierre legal completado", "slds-theme_success"],
+      ["Rechazado", "Cierre rechazado por Legal", "slds-theme_error"],
       ["Error", "Error en el cierre", "slds-theme_error"]
     ])(
       "muestra la insignia correcta para el estado %s",

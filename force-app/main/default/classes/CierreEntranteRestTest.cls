@@ -141,7 +141,7 @@ private class CierreEntranteRestTest {
       'esto no es json',
       cuerpo('xyz', 'Aprobado'),
       cuerpo(UserInfo.getUserId(), 'Aprobado'),
-      cuerpo(propiedad.Id, 'Rechazado'),
+      cuerpo(propiedad.Id, 'Otro'),
       cuerpo(propiedad.Id, null)
     };
 
@@ -169,5 +169,61 @@ private class CierreEntranteRestTest {
     RestResponse respuesta = enviar(cuerpo(idBorrado, 'Aprobado'));
 
     System.assertEquals(404, respuesta.statusCode);
+  }
+
+  @isTest
+  static void testRechazoMarcaLaPropiedadSinCambiarSuEstado() {
+    Propiedad__c propiedad = crearPropiedad('Bajo Contrato');
+
+    RestResponse respuesta = enviar(cuerpo(propiedad.Id, 'Rechazado'));
+
+    System.assertEquals(200, respuesta.statusCode);
+    Propiedad__c resultado = recargar(propiedad.Id);
+    System.assertEquals('Bajo Contrato', resultado.Estado__c);
+    System.assertEquals('Rechazado', resultado.Estado_de_Cierre_Legal__c);
+  }
+
+  @isTest
+  static void testRechazoEsIdempotente() {
+    Propiedad__c propiedad = crearPropiedad('Bajo Contrato');
+    enviar(cuerpo(propiedad.Id, 'Rechazado'));
+
+    RestResponse segunda = enviar(cuerpo(propiedad.Id, 'Rechazado'));
+
+    System.assertEquals(200, segunda.statusCode);
+    System.assert(
+      segunda.responseBody.toString().contains('"huboCambio":false')
+    );
+    System.assertEquals(
+      'Rechazado',
+      recargar(propiedad.Id).Estado_de_Cierre_Legal__c
+    );
+  }
+
+  @isTest
+  static void testNoSePuedeRechazarUnaPropiedadYaCerrada() {
+    Propiedad__c propiedad = crearPropiedad('Bajo Contrato');
+    enviar(cuerpo(propiedad.Id, 'Aprobado'));
+
+    RestResponse respuesta = enviar(cuerpo(propiedad.Id, 'Rechazado'));
+
+    System.assertEquals(400, respuesta.statusCode);
+    Propiedad__c resultado = recargar(propiedad.Id);
+    System.assertEquals('Cerrada', resultado.Estado__c);
+    System.assertEquals('Cerrado', resultado.Estado_de_Cierre_Legal__c);
+  }
+
+  @isTest
+  static void testRechazarUnaPropiedadFueraDeBajoContratoDevuelve400() {
+    Propiedad__c propiedad = crearPropiedad('Activa');
+
+    RestResponse respuesta = enviar(cuerpo(propiedad.Id, 'Rechazado'));
+
+    System.assertEquals(400, respuesta.statusCode);
+    System.assertNotEquals(
+      'Rechazado',
+      recargar(propiedad.Id).Estado_de_Cierre_Legal__c,
+      'No debe cambiar nada'
+    );
   }
 }
