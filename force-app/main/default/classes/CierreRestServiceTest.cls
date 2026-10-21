@@ -124,6 +124,9 @@ private class CierreRestServiceTest {
 
   @isTest
   static void testReenvioNoPisaUnCierreYaAprobado() {
+    // El flujo Notificar_Cierre_a_Origen lanza NotificarCierreQueueable al
+    // aprobar; Apex no permite reencolar un Queueable dentro de una prueba.
+    NotificarCierreQueueable.encolarReintentos = false;
     enviar(cuerpo(ID_PROPIEDAD, 100000));
     Cierre__c cierre = cierres()[0];
     cierre.Estado_Legal__c = 'Aprobado';

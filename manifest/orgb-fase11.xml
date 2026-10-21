@@ -59,10 +59,10 @@
         <name>Flow</name>
     </types>
     <types>
-        <members>Panel_del_Agente_Acceso</members>
         <members>Cierre_Integracion</members>
         <members>Cierre_Seguimiento</members>
         <members>OrgA_Cierre_Acceso</members>
+        <name>PermissionSet</name>
     </types>
     <types>
         <members>OrgA_Cierre</members>
