@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Cierre__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>Cierre__c.Id_Propiedad_Origen__c</members>
+        <members>Cierre__c.Estado_Legal__c</members>
+        <members>Cierre__c.Monto_Final__c</members>
+        <members>Cierre__c.Comprador_Nombre__c</members>
+        <members>Cierre__c.Nombre_Propiedad__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>Cierre_Integracion</members>
+        <name>PermissionSet</name>
+    </types>
+    <version>67.0</version>
+</Package>

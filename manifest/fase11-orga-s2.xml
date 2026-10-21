@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Propiedad__c.Estado_de_Cierre_Legal__c</members>
+        <members>Propiedad__c.Ultimo_Error_Integracion__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>Cierre_Campos_OrgA</members>
+        <name>PermissionSet</name>
+    </types>
+    <version>67.0</version>
+</Package>

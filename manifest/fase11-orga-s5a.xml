@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>CierreEntranteRest</members>
+        <members>CierreEntranteRestTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>Cierre_Entrante_Acceso</members>
+        <name>PermissionSet</name>
+    </types>
+    <version>67.0</version>
+</Package>
