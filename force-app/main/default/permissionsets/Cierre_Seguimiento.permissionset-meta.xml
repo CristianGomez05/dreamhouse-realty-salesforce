@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fieldPermissions><editable>true</editable><field
-    >Cierre__c.Notificacion_a_Origen__c</field><readable
-    >true</readable></fieldPermissions>
-    <fieldPermissions><editable>true</editable><field
-    >Cierre__c.Ultimo_Error_Integracion__c</field><readable
-    >true</readable></fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Cierre__c.Notificacion_a_Origen__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Cierre__c.Ultimo_Error_Integracion__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Cierre - Seguimiento</label>
 </PermissionSet>

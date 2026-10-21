@@ -8,6 +8,11 @@ public with sharing class NotificarCierreQueueable implements Queueable, Databas
   @TestVisible
   private static final Integer MAX_INTENTOS = 3;
 
+  // Interruptor para pruebas: Apex no permite encadenar un Queueable
+  // dentro de un test. En producción siempre es true.
+  @TestVisible
+  private static Boolean encolarReintentos = true;
+
   private final Id cierreId;
   private final Integer intento;
 
@@ -47,7 +52,12 @@ public with sharing class NotificarCierreQueueable implements Queueable, Databas
       intento < MAX_INTENTOS && !profundidadMaximaAlcanzada();
     if (puedeReintentar) {
       registrarMensaje(detalle);
-      System.enqueueJob(new NotificarCierreQueueable(cierreId, intento + 1), 1);
+      if (encolarReintentos) {
+        System.enqueueJob(
+          new NotificarCierreQueueable(cierreId, intento + 1),
+          1
+        );
+      }
     } else {
       registrarResultado('Error', detalle);
     }

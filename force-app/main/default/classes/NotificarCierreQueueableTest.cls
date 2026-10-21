@@ -245,7 +245,7 @@ private class NotificarCierreQueueableTest {
     Cierre__c cierre = [SELECT Id FROM Cierre__c WITH SYSTEM_MODE LIMIT 1];
     Test.setMock(HttpCalloutMock.class, new MockOrgA(500, 'servidor caido'));
 
-    // Sin startTest/stopTest: se ejecuta el intento 1 de forma directa.
+    NotificarCierreQueueable.encolarReintentos = false;
     new NotificarCierreQueueable(cierre.Id, 1).execute(null);
 
     Cierre__c resultado = [

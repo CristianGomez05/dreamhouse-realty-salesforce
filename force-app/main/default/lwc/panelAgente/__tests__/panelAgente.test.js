@@ -273,4 +273,51 @@ describe("c-panel-agente", () => {
       element.shadowRoot.querySelectorAll("c-tarjeta-visita")
     ).toHaveLength(1);
   });
+
+  describe("insignia de cierre legal", () => {
+    function propiedadConCierre(estado) {
+      return [
+        {
+          Id: "a01000000000009AAA",
+          Name: "Casa con Cierre",
+          Estado__c: "Bajo Contrato",
+          Region__c: "Norte",
+          Precio_de_Lista__c: 150000,
+          Total_de_Ofertas__c: 1,
+          Estado_de_Cierre_Legal__c: estado
+        }
+      ];
+    }
+
+    it.each([
+      ["Enviado", "Cierre en revisión legal", "slds-theme_warning"],
+      ["Cerrado", "Cierre legal completado", "slds-theme_success"],
+      ["Error", "Error en el cierre", "slds-theme_error"]
+    ])(
+      "muestra la insignia correcta para el estado %s",
+      async (estado, etiqueta, clase) => {
+        const element = crearComponente();
+
+        getPropiedadesDelAgente.emit(propiedadConCierre(estado));
+        await flushPromises();
+
+        const insignia = element.shadowRoot.querySelector("[data-cierre]");
+        expect(insignia).not.toBeNull();
+        expect(insignia.label).toBe(etiqueta);
+        expect(insignia.classList.contains(clase)).toBe(true);
+      }
+    );
+
+    it.each([["Sin enviar"], [null], [undefined]])(
+      "no muestra insignia cuando el estado es %s",
+      async (estado) => {
+        const element = crearComponente();
+
+        getPropiedadesDelAgente.emit(propiedadConCierre(estado));
+        await flushPromises();
+
+        expect(element.shadowRoot.querySelector("[data-cierre]")).toBeNull();
+      }
+    );
+  });
 });

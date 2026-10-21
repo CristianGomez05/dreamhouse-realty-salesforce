@@ -472,4 +472,33 @@ private class PropiedadAgenteControllerTest {
       'La visita debe seguir marcada como realizada'
     );
   }
+
+  @isTest
+  static void testDevuelveElEstadoDeCierreLegal() {
+    Propiedad__c propiedad = [
+      SELECT Id
+      FROM Propiedad__c
+      WHERE Name = 'Propiedad Test Agente A'
+    ];
+    propiedad.Estado_de_Cierre_Legal__c = 'Enviado';
+    update propiedad;
+
+    User agenteA = [
+      SELECT Id
+      FROM User
+      WHERE Username = 'agenteA.test@dreamhouse-practica.com.test'
+    ];
+
+    List<Propiedad__c> resultado;
+    System.runAs(agenteA) {
+      resultado = PropiedadAgenteController.getPropiedadesDelAgente('');
+    }
+
+    System.assertEquals(1, resultado.size());
+    System.assertEquals(
+      'Enviado',
+      resultado[0].Estado_de_Cierre_Legal__c,
+      'El panel debe recibir el estado del cierre legal'
+    );
+  }
 }

@@ -6,7 +6,7 @@
     </classAccesses>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Cierre__c.Id_Propiedad_Origen__c</field>
+        <field>Cierre__c.Comprador_Nombre__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -16,12 +16,12 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Cierre__c.Monto_Final__c</field>
+        <field>Cierre__c.Id_Propiedad_Origen__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Cierre__c.Comprador_Nombre__c</field>
+        <field>Cierre__c.Monto_Final__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -38,6 +38,7 @@
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
         <object>Cierre__c</object>
+        <viewAllFields>false</viewAllFields>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
     <userPermissions>

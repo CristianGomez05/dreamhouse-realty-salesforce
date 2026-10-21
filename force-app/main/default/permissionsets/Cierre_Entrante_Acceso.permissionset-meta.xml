@@ -4,14 +4,21 @@
         <apexClass>CierreEntranteRest</apexClass>
         <enabled>true</enabled>
     </classAccesses>
-    <fieldPermissions><editable>true</editable><field
-    >Propiedad__c.Estado__c</field><readable>true</readable></fieldPermissions>
-    <fieldPermissions><editable>true</editable><field
-    >Propiedad__c.Estado_de_Cierre_Legal__c</field><readable
-    >true</readable></fieldPermissions>
-    <fieldPermissions><editable>true</editable><field
-    >Propiedad__c.Ultimo_Error_Integracion__c</field><readable
-    >true</readable></fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Propiedad__c.Estado__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Propiedad__c.Estado_de_Cierre_Legal__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Propiedad__c.Ultimo_Error_Integracion__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Cierre - Endpoint Entrante</label>
     <objectPermissions>
@@ -21,6 +28,7 @@
         <allowRead>true</allowRead>
         <modifyAllRecords>true</modifyAllRecords>
         <object>Propiedad__c</object>
+        <viewAllFields>false</viewAllFields>
         <viewAllRecords>true</viewAllRecords>
     </objectPermissions>
     <userPermissions>

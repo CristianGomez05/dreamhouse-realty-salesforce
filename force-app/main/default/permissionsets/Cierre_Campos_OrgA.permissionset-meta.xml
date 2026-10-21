@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fieldPermissions><editable>true</editable><field
-    >Propiedad__c.Estado_de_Cierre_Legal__c</field><readable
-    >true</readable></fieldPermissions>
-    <fieldPermissions><editable>true</editable><field
-    >Propiedad__c.Ultimo_Error_Integracion__c</field><readable
-    >true</readable></fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Propiedad__c.Estado_de_Cierre_Legal__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Propiedad__c.Ultimo_Error_Integracion__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Cierre - Campos en Org A</label>
 </PermissionSet>

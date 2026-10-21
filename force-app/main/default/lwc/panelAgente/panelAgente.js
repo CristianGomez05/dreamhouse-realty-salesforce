@@ -4,6 +4,23 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getPropiedadesDelAgente from "@salesforce/apex/PropiedadAgenteController.getPropiedadesDelAgente";
 import marcarVisitaRealizada from "@salesforce/apex/PropiedadAgenteController.marcarVisitaRealizada";
 
+// Presentación de cada estado de cierre. "Sin enviar" (o vacío) no
+// aparece aquí a propósito: no hay nada que mostrar al agente.
+const CIERRE_INSIGNIAS = {
+  Enviado: {
+    etiqueta: "Cierre en revisión legal",
+    clase: "slds-theme_warning"
+  },
+  Cerrado: {
+    etiqueta: "Cierre legal completado",
+    clase: "slds-theme_success"
+  },
+  Error: {
+    etiqueta: "Error en el cierre",
+    clase: "slds-theme_error"
+  }
+};
+
 export default class PanelAgente extends LightningElement {
   @track searchTerm = "";
   @track propiedades = [];
@@ -26,11 +43,15 @@ export default class PanelAgente extends LightningElement {
         const visitas = prop.Visitas__r
           ? prop.Visitas__r.map((v) => ({ ...v, procesando: false }))
           : [];
+        const cierre = CIERRE_INSIGNIAS[prop.Estado_de_Cierre_Legal__c];
         return {
           ...prop,
           visitas,
           cantidadVisitas: visitas.length,
-          tieneOfertas: prop.Total_de_Ofertas__c > 0
+          tieneOfertas: prop.Total_de_Ofertas__c > 0,
+          mostrarCierre: Boolean(cierre),
+          cierreEtiqueta: cierre ? cierre.etiqueta : "",
+          cierreClase: cierre ? cierre.clase : ""
         };
       });
       this.errorMensaje = undefined;
@@ -95,9 +116,12 @@ export default class PanelAgente extends LightningElement {
   actualizarVisita(visitaId, cambios) {
     this.propiedades = this.propiedades.map((prop) => ({
       ...prop,
-      visitas: prop.visitas.map((v) =>
-        v.Id === visitaId ? { ...v, ...cambios } : v
-      )
+      visitas: prop.visitas.map((v) => {
+        if (v.Id === visitaId) {
+          return { ...v, ...cambios };
+        }
+        return v;
+      })
     }));
   }
 
