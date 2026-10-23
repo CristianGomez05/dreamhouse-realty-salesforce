@@ -67,6 +67,22 @@ private class EnviarCierreQueueableTest {
     ];
   }
 
+  // Deja una oferta con una aprobación pendiente. Si el Flow de aprobación ya
+  // la envió al insertarla, no se vuelve a enviar.
+  private static void ponerOfertaEnAprobacion(Id ofertaId) {
+    Integer pendientes = [
+      SELECT COUNT()
+      FROM ProcessInstance
+      WHERE Status = 'Pending' AND TargetObjectId = :ofertaId
+    ];
+    if (pendientes == 0) {
+      Approval.ProcessSubmitRequest solicitud = new Approval.ProcessSubmitRequest();
+      solicitud.setObjectId(ofertaId);
+      solicitud.setProcessDefinitionNameOrId('Aprobacion_por_Descuento_Alto');
+      Approval.process(solicitud);
+    }
+  }
+
   @isTest
   static void testArmarPayloadIncluyeLosDatosDelCierre() {
     Propiedad__c propiedad = crearPropiedad('Casa del Cierre', true);
@@ -221,6 +237,39 @@ private class EnviarCierreQueueableTest {
         FROM AsyncApexJob
         WHERE ApexClass.Name = 'EnviarCierreQueueable'
       ]
+    );
+  }
+
+  @isTest
+  static void testInvocableNoEnviaSiHayUnaOfertaConAprobacionPendiente() {
+    Propiedad__c propiedad = crearPropiedad(
+      'Casa con aprobacion pendiente',
+      true
+    );
+    Comprador__c comprador = [SELECT Id FROM Comprador__c LIMIT 1];
+    // 80 % del precio de lista: por debajo del 85 %, requiere aprobación.
+    Oferta__c conDescuento = new Oferta__c(
+      Propiedad__c = propiedad.Id,
+      Comprador__c = comprador.Id,
+      Estado__c = 'Enviada',
+      Monto_de_la_Oferta__c = 80000
+    );
+    insert conDescuento;
+    ponerOfertaEnAprobacion(conDescuento.Id);
+    Test.setMock(HttpCalloutMock.class, new MockOrgB(200, '{}'));
+
+    CierreInvocable.Entrada entrada = new CierreInvocable.Entrada();
+    entrada.propiedadId = propiedad.Id;
+
+    Test.startTest();
+    CierreInvocable.enviar(new List<CierreInvocable.Entrada>{ entrada });
+    Test.stopTest();
+
+    Propiedad__c resultado = recargar(propiedad.Id);
+    System.assertEquals('Error', resultado.Estado_de_Cierre_Legal__c);
+    System.assertEquals(
+      CierreInvocable.MOTIVO_APROBACION_PENDIENTE,
+      resultado.Ultimo_Error_Integracion__c
     );
   }
 }
