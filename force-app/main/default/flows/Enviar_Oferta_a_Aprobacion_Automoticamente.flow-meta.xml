@@ -63,7 +63,7 @@
             <field>Porcentaje_de_Descuento__c</field>
             <operator>LessThan</operator>
             <value>
-                <numberValue>0.85</numberValue>
+                <numberValue>85</numberValue>
             </value>
         </filters>
         <object>Oferta__c</object>
